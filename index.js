@@ -11,6 +11,11 @@ app.use((err, req, res, next) => {
   err = err ? err.toString() : "Something went wrong....";
   res.status(500).json({ data: "", msg: err });
 });
+
+app.use(express.static("public"));
+
+app.set("view engine", "ejs");
+app.set("views", "./views");
 app.listen(PORT, () => {
   console.log(`Server Started on ${PORT}`);
 });
