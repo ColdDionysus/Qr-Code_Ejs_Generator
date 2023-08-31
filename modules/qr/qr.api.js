@@ -4,14 +4,13 @@ const qrController = require("./qr.controller");
 
 router.post("/", async (req, res, next) => {
   try {
-    const { qr } = req.body;
-    if (qr == "") {
+    const { qrUrl } = req.body;
+    if (qrUrl == "") {
       throw new Error("Please enter data to generate qr");
     }
-    const qrData = await qrController(qr);
+    const qrData = await qrController(qrUrl);
     res.json({ qr: qrData, msg: "Success" });
   } catch (e) {
-    console.log(e);
     next(e);
   }
 });

@@ -72,9 +72,14 @@
           <div class="row">
             <div class="col-lg-7 col-md-8 mx-auto">
               <div class="detail-box">
+                <img style="margin-bottom: 20px;" id="qrFromServer" src=""></img>
                 <h1>
                   Generate Your <br />
-                  QR CODE WITH ONE CLICK
+                  QR CODE ON ONE CLICK
+                </h1>
+                <h1 id="after_send">
+      
+          
                 </h1>
               </div>
             </div>
@@ -84,41 +89,49 @@
               <div class="container center">
                 <div class="row">
                   <div class="col">
-                    <form class="col-lg-45 col-md-45 mx-auto">
+                    <form id="qrForm">
                       <div class="form-row">
                         <div class="form-group col-lg-9">
                           <input
+                            id="qrUrl"
                             type="text"
                             class="form-control"
-                            id="inputPatientName"
-                            placeholder="Enter your data to generate qrcode"
+                            
+                            placeholder="Enter to generate QRCode"
                           />
                         </div>
 
                         <div class="form-group col-lg-3">
                           <div class="btn-box">
-                            <button type="submit" class="btn">
-                              Submit Now
+                            <button
+                              type="button"
+                              class="btn"
+                              onclick=" fetchQr(); return false;"
+                            >
+                              Generate
                             </button>
                           </div>
                         </div>
                       </div>
-                      <div class="form-row" hidden>
+                      <div class="form-row  d-none" id="emailDiv" >
                         <div class="form-group col-lg-9">
+                          
+                          
                           <input
                             type="text"
                             class="form-control"
-                            id="inputPatientName"
-                            placeholder="Enter Your Email"
+                            id="email_id"
+                            placeholder="Send you generated qr on email"
                           />
                         </div>
 
                         <div class="form-group col-lg-3">
                           <div class="btn-box">
-                            <button type="submit" class="btn">
-                              Enter Your Email
+                            <button type="button" onclick="emailFetch(); return false" class="btn">
+                              Send Now
                             </button>
                           </div>
+                          
                         </div>
                       </div>
                     </form>
@@ -135,16 +148,93 @@
     <!-- footer section -->
 
     <!-- jQery -->
-    <script src="js/jquery-3.4.1.min.js"></script>
-    <!-- bootstrap js -->
-    <script src="js/bootstrap.js"></script>
-    <!-- nice select -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/jquery-nice-select/1.1.0/js/jquery.nice-select.min.js"
-      integrity="sha256-Zr3vByTlMGQhvMfgkQ5BtWRSKBGa2QlspKYJnkjZTmo="
-      crossorigin="anonymous"
-    ></script>
-    <!-- custom js -->
-    <script src="js/custom.js"></script>
+
+    <script>
+      
+      async function fetchQr() {
+        try {
+          const qrUrl = document.getElementById("qrUrl").value;
+          await buildQr(qrUrl);
+        } catch (error) {
+          console.error("Error fetching QR code:", error);
+        }
+      }
+      
+      async function buildQr(qrUrl) {
+        try {
+          const response = await fetch("/api/v1/qrcode", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ qrUrl }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to generate QR code");
+          }
+
+          const result = await response.json();
+          if(result && result.qr){
+            document.getElementById('qrFromServer').src=result.qr;
+            document.getElementById('emailDiv').classList.remove('d-none');
+            emailQr = result.qr;
+            
+            
+            
+          }
+          
+          
+          
+        } catch (error) {
+          throw new Error("QR Fetching wrong");
+        }
+      }
+      
+      
+      async function emailFetch() {
+        try {
+          const email = document.getElementById("email_id").value;
+          const payload = {
+            email,
+            img: emailQr
+          }
+          
+          await sendEmail(payload);
+        } catch (error) {
+          console.error("Error fetching QR code:", error);
+        }
+      }
+
+      async function sendEmail(payload) {
+        try {
+          const response = await fetch("/api/v1/mail", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to send QR code to email");
+          }
+
+          const result = await response.json();
+          if(result){
+            
+            document.getElementById('after_send').innerHTML = "Sent Successfully"
+          setTimeout(()=>{
+            document.getElementById('after_send').innerHTML = ""
+          }, 2500)
+          }
+          
+        } catch (error) {
+          throw new Error("QR Fetching wrong");
+        }
+
+        
+      }
+    </script>
   </body>
 </html>
